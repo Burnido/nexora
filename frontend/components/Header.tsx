@@ -8,20 +8,27 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-cream-50 border-b border-navy-200">
       <nav className="container-narrow py-4 flex items-center justify-between">
         <Link href="/">
-          <div className="text-2xl font-bold text-navy-950 tracking-tighter">
-            NEXORA
-          </div>
+          <div className="text-2xl font-bold text-navy-950 tracking-tighter">NEXORA</div>
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/solutions" className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium">
+          <Link
+            href="/solutions"
+            className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium"
+          >
             Solutions
           </Link>
-          <Link href="/ai" className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium">
+          <Link
+            href="/ai"
+            className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium"
+          >
             AI Studio
           </Link>
-          <Link href="/resources" className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium">
+          <Link
+            href="/resources"
+            className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium"
+          >
             Resources
           </Link>
           <Link href="/signin" className="btn text-sm">
@@ -35,7 +42,12 @@ export default function Header() {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
       </nav>
