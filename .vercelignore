@@ -1,0 +1,17 @@
+# Vercel ignore file
+# Don't deploy backend, docs, or docker files to Vercel
+
+backend/
+docker-compose.yml
+.git/
+.venv/
+.env
+.env.*
+*.log
+SETUP_GUIDE.md
+DEVELOPMENT_CHECKLIST.md
+PROJECT_COMPLETION_REPORT.md
+GET_STARTED.md
+DESIGN_TOKENS.md
+setup.sh
+setup.bat
