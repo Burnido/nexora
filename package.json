@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix backend run dev",
-    "build": "npm --prefix backend run build",
+    "build": "npm --prefix backend install --include=dev && npm --prefix backend run build",
     "start": "npm --prefix backend run start"
   },
   "dependencies": {
