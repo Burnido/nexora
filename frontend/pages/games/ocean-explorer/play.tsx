@@ -86,8 +86,12 @@ export default function BubbleBayPlay() {
   const saveScore = async () => {
     if (!playerData) return
     setIsSaving(true)
+    
+    // Get backend URL fallback to localhost for local testing
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+
     try {
-      await fetch('http://localhost:5000/api/games/ocean-explorer/scores', {
+      await fetch(`${apiUrl}/games/ocean-explorer/scores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
