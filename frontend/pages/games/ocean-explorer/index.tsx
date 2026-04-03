@@ -74,7 +74,7 @@ export default function OceanExplorerOnboarding() {
               id="age"
               type="number"
               min="3"
-              max="99"
+              max="18"
               value={age}
               onChange={(e) => setAge(e.target.value)}
               placeholder="How old are you?"

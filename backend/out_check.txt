@@ -1,0 +1,1 @@
+Constraint is:  CHECK (((age >= 3) AND (age <= 18)))
