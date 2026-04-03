@@ -93,6 +93,7 @@ export default function BubbleBayPlay() {
         body: JSON.stringify({
           player_name: playerData.name,
           player_age: playerData.age,
+          gender: playerData.gender,
           sea_buddy: playerData.buddy,
           score: score + (showFeedback === 'Correct' ? 1 : 0), // account for current if correct
         })

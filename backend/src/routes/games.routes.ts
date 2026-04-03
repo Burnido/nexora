@@ -3,50 +3,50 @@ const pool = require('../../db')
 
 const router = express.Router()
 
-// Save game session scores
+// Save game session scores natively into the ERD schema
 router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
-  const { player_name, player_age, sea_buddy, score } = req.body
+  const { player_name, player_age, gender, sea_buddy, score } = req.body
 
   if (!player_name) {
     return res.status(400).json({ error: 'Player name is required' })
   }
 
+  const client = await pool.connect()
+
   try {
-    const result = await pool.query(
-      `INSERT INTO ocean_explorer_sessions 
-       (game_slug, player_name, player_age, sea_buddy, score) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING *`,
-      ['ocean-explorer', player_name, player_age, sea_buddy, score]
+    await client.query('BEGIN')
+
+    // 1. Create the Student record
+    // Leaving parent_id and school_id NULL since this is a self-administered guest flow
+    const studentResult = await client.query(
+      `INSERT INTO student (name, age, gender) 
+       VALUES ($1, $2, $3) 
+       RETURNING student_id`,
+      [player_name, player_age || null, gender || 'Not Specified']
     )
+    
+    const studentId = studentResult.rows[0].student_id
+
+    // 2. Insert the game result into screening_test
+    const testResult = await client.query(
+      `INSERT INTO screening_test (student_id, disability_type, ai_score, result_status)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [studentId, 'Dyslexia', score, 'Completed']
+    )
+
+    await client.query('COMMIT')
 
     return res.status(201).json({
-      message: 'Score saved successfully',
-      session: result.rows[0]
+      message: 'Score saved successfully to screening_test ERD',
+      session: testResult.rows[0]
     })
   } catch (error) {
+    await client.query('ROLLBACK')
     console.error('Error saving score:', error)
     return res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-// Get top scores / leaderboard (optional but good to have)
-router.get('/ocean-explorer/leaderboard', async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query(
-      `SELECT player_name, sea_buddy, score, completed_at
-       FROM ocean_explorer_sessions
-       WHERE game_slug = 'ocean-explorer'
-       ORDER BY score DESC, completed_at DESC
-       LIMIT 10`
-    )
-
-    return res.status(200).json({
-      leaderboard: result.rows
-    })
-  } catch (error) {
-    console.error('Error fetching leaderboard:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+  } finally {
+    client.release()
   }
 })
 

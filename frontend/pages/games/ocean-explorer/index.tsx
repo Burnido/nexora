@@ -14,12 +14,13 @@ export default function OceanExplorerOnboarding() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
+  const [gender, setGender] = useState('')
   const [selectedBuddy, setSelectedBuddy] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !age || !selectedBuddy) {
+    if (!name || !age || !gender || !selectedBuddy) {
       setError('Please fill in all fields and choose a buddy!')
       return
     }
@@ -27,7 +28,7 @@ export default function OceanExplorerOnboarding() {
     // Save session config broadly for the game
     sessionStorage.setItem(
       'ocean_explorer_player',
-      JSON.stringify({ name, age: parseInt(age, 10), buddy: selectedBuddy })
+      JSON.stringify({ name, age: parseInt(age, 10), gender, buddy: selectedBuddy })
     )
     router.push('/games/ocean-explorer/play')
   }
@@ -79,6 +80,24 @@ export default function OceanExplorerOnboarding() {
               placeholder="How old are you?"
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
             />
+          </div>
+
+          <div>
+            <label className="block text-slate-800 font-semibold mb-2" htmlFor="gender">
+              Gender
+            </label>
+            <select
+              id="gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all bg-white"
+            >
+              <option value="" disabled>Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+              <option value="Not Specified">Prefer not to say</option>
+            </select>
           </div>
 
           <div>
