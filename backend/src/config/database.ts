@@ -19,7 +19,7 @@ const pool = new Pool({
 })
 
 // Test connection
-pool.on('error', (err) => {
+pool.on('error', (err: Error) => {
   console.error('Unexpected error on idle client', err)
 })
 
@@ -117,10 +117,10 @@ export const db = {
 
     async getById(id: string, userId: string) {
       try {
-        const result = await query(
-          'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
-          [id, userId]
-        )
+        const result = await query('SELECT * FROM tasks WHERE id = $1 AND user_id = $2', [
+          id,
+          userId,
+        ])
         return { data: result.rows[0] || null, error: null }
       } catch (error: any) {
         return { data: null, error: error.message }
@@ -177,10 +177,7 @@ export const db = {
 
     async delete(id: string, userId: string) {
       try {
-        const result = await query(
-          'DELETE FROM tasks WHERE id = $1 AND user_id = $2',
-          [id, userId]
-        )
+        const result = await query('DELETE FROM tasks WHERE id = $1 AND user_id = $2', [id, userId])
         return { data: result.rows, error: null }
       } catch (error: any) {
         return { data: null, error: error.message }
@@ -192,47 +189,6 @@ export const db = {
   pool,
   query,
   getClient,
-}
-
-export default db
-
-      return { data, error }
-    },
-
-    async create(task: {
-      user_id: string
-      title: string
-      description?: string
-      status: string
-      priority?: string
-      due_date?: string
-    }) {
-      const { data, error } = await supabase.from('tasks').insert([task]).select()
-
-      return { data, error }
-    },
-
-    async update(id: string, userId: string, updates: Partial<any>) {
-      const { data, error } = await supabase
-        .from('tasks')
-        .update(updates)
-        .eq('id', id)
-        .eq('user_id', userId)
-        .select()
-
-      return { data, error }
-    },
-
-    async delete(id: string, userId: string) {
-      const { data, error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId)
-
-      return { data, error }
-    },
-  },
 }
 
 export default db

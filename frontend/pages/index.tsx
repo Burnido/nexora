@@ -11,7 +11,7 @@ export default function Home() {
       description: 'Advanced reading pattern recognition through immersive oceanic environments',
       tags: ['Pattern Recognition', 'Visual Processing', 'Reading Fluency'],
       icon: '🧠',
-      link: 'https://dsylexia-final.vercel.app/',
+      link: '/games/ocean-explorer',
       color: 'from-blue-600 to-blue-400',
     },
     {
@@ -65,7 +65,7 @@ export default function Home() {
                 <a
                   key={index}
                   href={assessment.link}
-                  target="_blank"
+                  target={assessment.link.startsWith('/') ? '_self' : '_blank'}
                   rel="noopener noreferrer"
                   className="group relative"
                 >

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'
 
@@ -59,7 +59,7 @@ export const verifyAuth = (req: AuthRequest, res: Response, next: NextFunction) 
 /**
  * Generate JWT token
  */
-export const generateToken = (payload: any, expiresIn: string = '7d') => {
+export const generateToken = (payload: any, expiresIn: SignOptions['expiresIn'] = '7d') => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn })
 }
 
