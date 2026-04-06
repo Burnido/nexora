@@ -45,3 +45,14 @@ coverage/
 # Misc
 .cache/
 .parcel-cache/
+
+# Generated
+/generated/prisma
+
+# Debug output files (local only)
+backend/out*.txt
+backend/out_check.txt
+
+# Prisma local config
+prisma.config.ts
+prisma/

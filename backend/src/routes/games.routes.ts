@@ -41,12 +41,22 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
       message: 'Score saved successfully to screening_test ERD',
       session: testResult.rows[0]
     })
-  } catch (error) {
-    await client.query('ROLLBACK')
-    console.error('Error saving score:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+  } catch (error: any) {
+    if (client) await client.query('ROLLBACK')
+    console.error('CRITICAL DATABASE ERROR:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+      stack: error.stack
+    })
+    return res.status(500).json({ 
+      error: 'Database error', 
+      details: error.message,
+      code: error.code 
+    })
   } finally {
-    client.release()
+    if (client) client.release()
   }
 })
 

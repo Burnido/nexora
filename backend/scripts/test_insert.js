@@ -10,7 +10,7 @@ async function testInsert() {
       `INSERT INTO student (name, age, gender) 
        VALUES ($1, $2, $3) 
        RETURNING student_id`,
-      ['Test Player', 25, 'Male']
+      ['Test Player', 12, 'Male']
     );
     
     const studentId = studentResult.rows[0].student_id;
@@ -26,9 +26,9 @@ async function testInsert() {
 
     console.log('Successfully inserted screening_test:', testResult.rows[0].test_id);
 
-    // Rollback so we don't pollute their db with test data
-    await client.query('ROLLBACK');
-    console.log('Test successful! No errors.');
+    // Commit the data so the user can verify it in Supabase
+    await client.query('COMMIT');
+    console.log('Test successful! Check your Supabase database!');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('DATABASE ERROR:', err.message);
