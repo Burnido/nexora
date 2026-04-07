@@ -21,7 +21,7 @@ const corsOptions = {
       'http://localhost:3001',
       /^https:\/\/.*\.railway\.app$/,
     ]
-    
+
     // Custom origin from env
     const customOrigin = process.env.CORS_ORIGIN
     if (customOrigin) {
@@ -71,14 +71,14 @@ app.use('/api/games', gamesRoutes)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack)
   res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error'
+    error: err.message || 'Internal Server Error',
   })
 })
 
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
-    error: 'Route not found'
+    error: 'Route not found',
   })
 })
 
