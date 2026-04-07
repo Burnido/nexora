@@ -32,11 +32,15 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
     const MAX_ROUNDS = 10
     const normalizedScore = Math.min(1, Math.max(0, (score ?? 0) / MAX_ROUNDS))
 
+    // result_status constraint: 'Pending' | 'Low Risk' | 'High Risk'
+    // High score = performed well = Low Risk of dyslexia
+    const resultStatus = normalizedScore >= 0.7 ? 'Low Risk' : 'High Risk'
+
     const testResult = await client.query(
       `INSERT INTO screening_test (student_id, disability_type, ai_score, result_status)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [studentId, 'Dyslexia', normalizedScore, 'Completed']
+      [studentId, 'Dyslexia', normalizedScore, resultStatus]
     )
 
     await client.query('COMMIT')
