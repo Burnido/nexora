@@ -13,8 +13,9 @@ const app: Express = express()
 const PORT = process.env.PORT || 5000
 
 // Middleware
+const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:3000').replace(/\/$/, '')
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: corsOrigin,
   credentials: true
 }))
 app.use(express.json())
