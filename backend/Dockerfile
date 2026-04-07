@@ -4,12 +4,17 @@ WORKDIR /app
 
 COPY package*.json ./
 
+# Install ALL deps (including devDeps) so TypeScript can compile
 RUN npm install
 
 COPY . .
 
+# Build TypeScript
 RUN npm run build
 
-EXPOSE 5000
+# Remove devDeps after build to keep image lean
+RUN npm prune --production
 
-CMD ["npm", "start"]
+EXPOSE ${PORT:-5000}
+
+CMD ["node", "dist/index.js"]
