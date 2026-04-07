@@ -23,7 +23,17 @@ const parseOptionalNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+const doesTableExist = async (client: any, tableName: string) => {
+  const result = await client.query(`SELECT to_regclass($1) AS table_ref`, [`public.${tableName}`])
+  return Boolean(result.rows[0]?.table_ref)
+}
+
 const getOceanExplorerSlug = async (client: any) => {
+  const gamesTableExists = await doesTableExist(client, 'games')
+  if (!gamesTableExists) {
+    return null
+  }
+
   const gameResult = await client.query(
     `SELECT slug FROM games WHERE slug = 'ocean-explorer' LIMIT 1`
   )
@@ -83,13 +93,18 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
     )
     const studentId = studentResult.rows[0].student_id
 
-    const gameSlug = await getOceanExplorerSlug(client)
-    const onboardingSession = await client.query(
-      `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id`,
-      [gameSlug, playerName, playerAge, seaBuddy, 0]
-    )
+    let onboardingSessionId: number | null = null
+    const sessionsTableExists = await doesTableExist(client, 'ocean_explorer_sessions')
+    if (sessionsTableExists) {
+      const gameSlug = await getOceanExplorerSlug(client)
+      const onboardingSession = await client.query(
+        `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [gameSlug, playerName, playerAge, seaBuddy, 0]
+      )
+      onboardingSessionId = onboardingSession.rows[0].id
+    }
 
     await client.query('COMMIT')
 
@@ -97,7 +112,7 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
       message: 'Onboarding saved successfully',
       student_id: studentId,
       school_id: schoolId,
-      onboarding_session_id: onboardingSession.rows[0].id,
+      onboarding_session_id: onboardingSessionId,
     })
   } catch (error) {
     await client.query('ROLLBACK')
@@ -184,10 +199,10 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
       [studentId, 'Dyslexia', normalizedScore, resultStatus]
     )
 
-    const gameSlug = await getOceanExplorerSlug(client)
     let savedSessionId: number | null = null
+    const sessionsTableExists = await doesTableExist(client, 'ocean_explorer_sessions')
 
-    if (onboardingSessionId) {
+    if (sessionsTableExists && onboardingSessionId) {
       const updatedSession = await client.query(
         `UPDATE ocean_explorer_sessions
          SET score = $1,
@@ -205,7 +220,8 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
       }
     }
 
-    if (!savedSessionId) {
+    if (sessionsTableExists && !savedSessionId) {
+      const gameSlug = await getOceanExplorerSlug(client)
       const createdSession = await client.query(
         `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
          VALUES ($1, $2, $3, $4, $5)
