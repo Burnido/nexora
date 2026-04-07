@@ -100,6 +100,9 @@ export default function BubbleBayPlay() {
           gender: playerData.gender,
           sea_buddy: playerData.buddy,
           score: score + (showFeedback === 'Correct' ? 1 : 0), // account for current if correct
+          school_name: playerData.school_name,
+          school_location: playerData.school_location,
+          contact_person: playerData.contact_person,
         })
       })
     } catch (e) {
