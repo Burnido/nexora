@@ -13,11 +13,44 @@ const app: Express = express()
 const PORT = process.env.PORT || 5000
 
 // Middleware
-const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:3000').replace(/\/$/, '')
-app.use(cors({
-  origin: corsOrigin,
-  credentials: true
-}))
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allowed origins
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      /^https:\/\/.*\.railway\.app$/,
+    ]
+    
+    // Custom origin from env
+    const customOrigin = process.env.CORS_ORIGIN
+    if (customOrigin) {
+      allowedOrigins.push(customOrigin)
+    }
+
+    // Allow if origin is not present (like mobile apps) or matches allowed list
+    if (!origin) {
+      return callback(null, true)
+    }
+
+    const isAllowed = allowedOrigins.some((allowed) => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin)
+      }
+      return allowed === origin
+    })
+
+    if (isAllowed) {
+      callback(null, true)
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`)
+      callback(new Error('CORS not allowed'))
+    }
+  },
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 

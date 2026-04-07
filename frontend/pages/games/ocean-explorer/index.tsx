@@ -61,17 +61,32 @@ export default function OceanExplorerOnboarding() {
     }
 
     try {
+      console.log('Attempting to save onboarding to:', `${apiUrl}/games/ocean-explorer/onboarding`)
+      console.log('Payload:', payload)
+
       const response = await fetch(`${apiUrl}/games/ocean-explorer/onboarding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
 
+      console.log('Response status:', response.status, response.statusText)
+      const responseText = await response.text()
+      console.log('Response body:', responseText)
+
       if (!response.ok) {
-        throw new Error('Unable to save onboarding details right now.')
+        throw new Error(`Server error (${response.status}): ${responseText}`)
       }
 
-      const saved = await response.json()
+      let saved
+      try {
+        saved = JSON.parse(responseText)
+      } catch (parseErr) {
+        console.error('Failed to parse response as JSON:', parseErr)
+        throw new Error('Invalid response from server')
+      }
+
+      console.log('Onboarding saved successfully:', saved)
 
       sessionStorage.setItem(
         'ocean_explorer_player',
@@ -90,8 +105,10 @@ export default function OceanExplorerOnboarding() {
 
       router.push('/games/ocean-explorer/play')
     } catch (err) {
-      console.error('Onboarding save failed:', err)
-      setError('Could not save form details. Please try again.')
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      console.error('Onboarding save failed:', errorMessage)
+      console.error('Full error:', err)
+      setError(`Save failed: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
     }
