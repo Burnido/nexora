@@ -16,6 +16,7 @@ export default function OceanExplorerOnboarding() {
   // Step control
   const [step, setStep] = useState(1)
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Step 1 – School info
   const [schoolName, setSchoolName] = useState('')
@@ -38,26 +39,62 @@ export default function OceanExplorerOnboarding() {
     setStep(2)
   }
 
-  const handleStart = (e: React.FormEvent) => {
+  const handleStart = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name || !age || !gender || !selectedBuddy) {
       setError('Please fill in all fields and choose a sea buddy!')
       return
     }
 
-    sessionStorage.setItem(
-      'ocean_explorer_player',
-      JSON.stringify({
-        name,
-        age: parseInt(age, 10),
-        gender,
-        buddy: selectedBuddy,
-        school_name: schoolName,
-        school_location: schoolLocation,
-        contact_person: contactPerson,
+    setIsSubmitting(true)
+    setError('')
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+    const payload = {
+      player_name: name,
+      player_age: parseInt(age, 10),
+      gender,
+      sea_buddy: selectedBuddy,
+      school_name: schoolName,
+      school_location: schoolLocation,
+      contact_person: contactPerson,
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/games/ocean-explorer/onboarding`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
-    )
-    router.push('/games/ocean-explorer/play')
+
+      if (!response.ok) {
+        throw new Error('Unable to save onboarding details right now.')
+      }
+
+      const saved = await response.json()
+
+      sessionStorage.setItem(
+        'ocean_explorer_player',
+        JSON.stringify({
+          name,
+          age: parseInt(age, 10),
+          gender,
+          buddy: selectedBuddy,
+          school_name: schoolName,
+          school_location: schoolLocation,
+          contact_person: contactPerson,
+          student_id: saved.student_id,
+          onboarding_session_id: saved.onboarding_session_id,
+        })
+      )
+
+      router.push('/games/ocean-explorer/play')
+    } catch (err) {
+      console.error('Onboarding save failed:', err)
+      setError('Could not save form details. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -269,9 +306,10 @@ export default function OceanExplorerOnboarding() {
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="flex-1 py-3 bg-cyan-400 hover:bg-cyan-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-cyan-100 text-sm"
               >
-                🌊 Dive In!
+                {isSubmitting ? 'Saving...' : '🌊 Dive In!'}
               </button>
             </div>
           </form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 
@@ -18,16 +18,19 @@ function getRandomLetters(target: string, count: number) {
 
 export default function BubbleBayPlay() {
   const router = useRouter()
-  
+
   const [playerData, setPlayerData] = useState<any>(null)
   const [currentRound, setCurrentRound] = useState(1)
   const [score, setScore] = useState(0)
   const [targetLetter, setTargetLetter] = useState('')
   const [options, setOptions] = useState<string[]>([])
-  
+
   const [showFeedback, setShowFeedback] = useState<'Correct' | 'Wrong' | null>(null)
   const [gameOver, setGameOver] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [finalScore, setFinalScore] = useState<number | null>(null)
 
   // Initialize game / load player info
   useEffect(() => {
@@ -51,10 +54,10 @@ export default function BubbleBayPlay() {
 
   const playHintAudio = (letter: string) => {
     if ('speechSynthesis' in window) {
-      const char = letter || targetLetter;
-      const utterance = new SpeechSynthesisUtterance(`Find the letter ${char}`);
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
+      const char = letter || targetLetter
+      const utterance = new SpeechSynthesisUtterance(`Find the letter ${char}`)
+      utterance.rate = 0.9
+      window.speechSynthesis.speak(utterance)
     }
   }
 
@@ -64,49 +67,63 @@ export default function BubbleBayPlay() {
     if (letter === targetLetter) {
       setShowFeedback('Correct')
       setScore((s) => s + 1)
-      nextRound()
+      nextRound(true)
     } else {
       setShowFeedback('Wrong')
-      nextRound()
+      nextRound(false)
     }
   }
 
-  const nextRound = () => {
+  const nextRound = (answeredCorrect: boolean) => {
+    const roundScoreAfterAnswer = score + (answeredCorrect ? 1 : 0)
+
     setTimeout(() => {
       if (currentRound < MAX_ROUNDS) {
         setCurrentRound((r) => r + 1)
         setupRound()
       } else {
+        setFinalScore(roundScoreAfterAnswer)
         setGameOver(true)
-        saveScore()
+        saveScore(roundScoreAfterAnswer)
       }
     }, 1500)
   }
 
-  const saveScore = async () => {
-    if (!playerData) return
+  const saveScore = async (scoreToSave: number) => {
+    if (!playerData || isSaving) return
     setIsSaving(true)
-    
+    setSaveError('')
+
     // Get backend URL fallback to localhost for local testing
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
     try {
-      await fetch(`${apiUrl}/games/ocean-explorer/scores`, {
+      const response = await fetch(`${apiUrl}/games/ocean-explorer/scores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          student_id: playerData.student_id,
+          onboarding_session_id: playerData.onboarding_session_id,
           player_name: playerData.name,
           player_age: playerData.age,
           gender: playerData.gender,
           sea_buddy: playerData.buddy,
-          score: score + (showFeedback === 'Correct' ? 1 : 0), // account for current if correct
+          score: scoreToSave,
           school_name: playerData.school_name,
           school_location: playerData.school_location,
           contact_person: playerData.contact_person,
-        })
+        }),
       })
+
+      if (!response.ok) {
+        throw new Error('Server rejected score save request')
+      }
+
+      setIsSaved(true)
     } catch (e) {
       console.error('Save failed', e)
+      setIsSaved(false)
+      setSaveError('Could not save game data. Please retry.')
     } finally {
       setIsSaving(false)
     }
@@ -117,17 +134,33 @@ export default function BubbleBayPlay() {
       <div className="min-h-screen bg-sky-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
           <h1 className="text-4xl font-bold text-blue-600 mb-4">Assessment Complete!</h1>
-          <p className="text-2xl mb-6">You scored {score + (showFeedback === 'Correct' ? 1 : 0)} / {MAX_ROUNDS}</p>
-          <div className="text-6xl mb-8">{playerData?.buddy === 'fish' ? '🐟' : playerData?.buddy === 'turtle' ? '🐢' : '⚓'}</div>
+          <p className="text-2xl mb-6">
+            You scored {finalScore ?? score} / {MAX_ROUNDS}
+          </p>
+          <div className="text-6xl mb-8">
+            {playerData?.buddy === 'fish' ? '🐟' : playerData?.buddy === 'turtle' ? '🐢' : '⚓'}
+          </div>
           {isSaving ? (
             <p className="text-slate-500 animate-pulse">Saving your session...</p>
-          ) : (
-            <button 
+          ) : saveError ? (
+            <div className="space-y-3">
+              <p className="text-red-500 text-sm">{saveError}</p>
+              <button
+                onClick={() => saveScore(finalScore ?? score)}
+                className="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 w-full"
+              >
+                Retry Save
+              </button>
+            </div>
+          ) : isSaved ? (
+            <button
               onClick={() => router.push('/games/ocean-explorer')}
               className="px-6 py-3 bg-cyan-500 text-white font-bold rounded-lg hover:bg-cyan-600 w-full"
             >
               Play Again
             </button>
+          ) : (
+            <p className="text-slate-500">Finalizing save...</p>
           )}
         </div>
       </div>
@@ -138,7 +171,9 @@ export default function BubbleBayPlay() {
 
   return (
     <div className="min-h-screen bg-sky-50 flex flex-col p-4 md:p-8">
-      <Head><title>Bubble Bay | Ocean Explorer</title></Head>
+      <Head>
+        <title>Bubble Bay | Ocean Explorer</title>
+      </Head>
 
       {/* Header */}
       <div className="max-w-4xl mx-auto w-full flex justify-between items-end mb-4">
@@ -153,8 +188,8 @@ export default function BubbleBayPlay() {
 
       <div className="max-w-4xl mx-auto w-full mb-8">
         <div className="h-2 w-full bg-blue-100 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-cyan-400 transition-all duration-500 ease-out" 
+          <div
+            className="h-full bg-cyan-400 transition-all duration-500 ease-out"
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
@@ -165,12 +200,24 @@ export default function BubbleBayPlay() {
           <p className="text-slate-700 text-lg mb-4">
             Burst the bubble with the letter by taping on it:
           </p>
-          <button 
+          <button
             onClick={() => playHintAudio(targetLetter)}
             className="w-12 h-12 rounded-full border-2 border-blue-400 text-blue-500 flex items-center justify-center hover:bg-blue-50 transition-colors mx-auto"
             aria-label="Play hint"
           >
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
           </button>
         </div>
 

@@ -3,21 +3,46 @@ import pool from '../../db.js'
 
 const router = express.Router()
 
-// Save game session scores — creates/links school, student, and screening_test
-router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
-  const {
-    player_name,
-    player_age,
-    gender,
-    sea_buddy,
-    score,
-    school_name,
-    school_location,
-    contact_person,
-  } = req.body
+const MAX_ROUNDS = 10
 
-  if (!player_name) {
-    return res.status(400).json({ error: 'Player name is required' })
+const getOptionalText = (value: unknown) => {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+const getRequiredText = (value: unknown) => {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+const parseOptionalNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const getOceanExplorerSlug = async (client: any) => {
+  const gameResult = await client.query(
+    `SELECT slug FROM games WHERE slug = 'ocean-explorer' LIMIT 1`
+  )
+  return gameResult.rows[0]?.slug ?? null
+}
+
+router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) => {
+  const playerName = getRequiredText(req.body.player_name)
+  const playerAge = parseOptionalNumber(req.body.player_age)
+  const gender = getOptionalText(req.body.gender) || 'Not Specified'
+  const seaBuddy = getOptionalText(req.body.sea_buddy)
+  const schoolName = getRequiredText(req.body.school_name)
+  const schoolLocation = getOptionalText(req.body.school_location)
+  const contactPerson = getOptionalText(req.body.contact_person)
+
+  if (!playerName || !schoolName || !seaBuddy) {
+    return res.status(400).json({
+      error: 'Player name, school name, and sea buddy are required',
+    })
   }
 
   const client = await pool.connect()
@@ -25,44 +50,133 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
   try {
     await client.query('BEGIN')
 
-    // 1. Upsert school — find existing by name, or create new
-    let schoolId: string | null = null
-    if (school_name) {
-      const existingSchool = await client.query(
-        `SELECT school_id FROM school WHERE school_name = $1 LIMIT 1`,
-        [school_name]
-      )
+    let schoolId: string
+    const existingSchool = await client.query(
+      `SELECT school_id FROM school WHERE school_name = $1 LIMIT 1`,
+      [schoolName]
+    )
 
-      if (existingSchool.rows.length > 0) {
-        schoolId = existingSchool.rows[0].school_id
-      } else {
-        const newSchool = await client.query(
-          `INSERT INTO school (school_name, location, contact_person)
-           VALUES ($1, $2, $3)
-           RETURNING school_id`,
-          [school_name, school_location || null, contact_person || null]
-        )
-        schoolId = newSchool.rows[0].school_id
-      }
+    if (existingSchool.rows.length > 0) {
+      schoolId = existingSchool.rows[0].school_id
+      await client.query(
+        `UPDATE school
+         SET location = COALESCE($1, location),
+             contact_person = COALESCE($2, contact_person)
+         WHERE school_id = $3`,
+        [schoolLocation, contactPerson, schoolId]
+      )
+    } else {
+      const newSchool = await client.query(
+        `INSERT INTO school (school_name, location, contact_person)
+         VALUES ($1, $2, $3)
+         RETURNING school_id`,
+        [schoolName, schoolLocation, contactPerson]
+      )
+      schoolId = newSchool.rows[0].school_id
     }
 
-    // 2. Create the student record linked to the school
     const studentResult = await client.query(
       `INSERT INTO student (name, age, gender, school_id)
        VALUES ($1, $2, $3, $4)
        RETURNING student_id`,
-      [player_name, player_age || null, gender || 'Not Specified', schoolId]
+      [playerName, playerAge, gender, schoolId]
     )
     const studentId = studentResult.rows[0].student_id
 
-    // 3. Normalize score (0–10 raw → 0.0–1.0 float for ai_score constraint)
-    const MAX_ROUNDS = 10
-    const normalizedScore = Math.min(1, Math.max(0, (score ?? 0) / MAX_ROUNDS))
+    const gameSlug = await getOceanExplorerSlug(client)
+    const onboardingSession = await client.query(
+      `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [gameSlug, playerName, playerAge, seaBuddy, 0]
+    )
 
-    // result_status constraint: 'Pending' | 'Low Risk' | 'High Risk'
+    await client.query('COMMIT')
+
+    return res.status(201).json({
+      message: 'Onboarding saved successfully',
+      student_id: studentId,
+      school_id: schoolId,
+      onboarding_session_id: onboardingSession.rows[0].id,
+    })
+  } catch (error) {
+    await client.query('ROLLBACK')
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('ONBOARDING SAVE ERROR:', err.message)
+    return res.status(500).json({
+      error: 'Database error',
+      details: err.message,
+    })
+  } finally {
+    client.release()
+  }
+})
+
+// Save game session scores — creates/links school, student, and screening_test
+router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
+  const playerName = getRequiredText(req.body.player_name)
+  const playerAge = parseOptionalNumber(req.body.player_age)
+  const gender = getOptionalText(req.body.gender) || 'Not Specified'
+  const seaBuddy = getOptionalText(req.body.sea_buddy)
+  const score = parseOptionalNumber(req.body.score) || 0
+  const schoolName = getOptionalText(req.body.school_name)
+  const schoolLocation = getOptionalText(req.body.school_location)
+  const contactPerson = getOptionalText(req.body.contact_person)
+  const onboardingSessionId = parseOptionalNumber(req.body.onboarding_session_id)
+  const studentIdFromBody = getOptionalText(req.body.student_id)
+
+  if (!playerName && !studentIdFromBody) {
+    return res.status(400).json({ error: 'Player name or student_id is required' })
+  }
+
+  const client = await pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    let schoolId: string | null = null
+    let studentId: string | null = studentIdFromBody
+
+    if (!studentId) {
+      if (schoolName) {
+        const existingSchool = await client.query(
+          `SELECT school_id FROM school WHERE school_name = $1 LIMIT 1`,
+          [schoolName]
+        )
+
+        if (existingSchool.rows.length > 0) {
+          schoolId = existingSchool.rows[0].school_id
+          await client.query(
+            `UPDATE school
+             SET location = COALESCE($1, location),
+                 contact_person = COALESCE($2, contact_person)
+             WHERE school_id = $3`,
+            [schoolLocation, contactPerson, schoolId]
+          )
+        } else {
+          const newSchool = await client.query(
+            `INSERT INTO school (school_name, location, contact_person)
+             VALUES ($1, $2, $3)
+             RETURNING school_id`,
+            [schoolName, schoolLocation, contactPerson]
+          )
+          schoolId = newSchool.rows[0].school_id
+        }
+      }
+
+      const studentResult = await client.query(
+        `INSERT INTO student (name, age, gender, school_id)
+         VALUES ($1, $2, $3, $4)
+         RETURNING student_id`,
+        [playerName, playerAge, gender, schoolId]
+      )
+      studentId = studentResult.rows[0].student_id
+    }
+
+    const normalizedScore = Math.min(1, Math.max(0, score / MAX_ROUNDS))
+
     const resultStatus = normalizedScore >= 0.7 ? 'Low Risk' : 'High Risk'
 
-    // 4. Insert screening_test linked to student
     const testResult = await client.query(
       `INSERT INTO screening_test (student_id, disability_type, ai_score, result_status)
        VALUES ($1, $2, $3, $4)
@@ -70,12 +184,44 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
       [studentId, 'Dyslexia', normalizedScore, resultStatus]
     )
 
+    const gameSlug = await getOceanExplorerSlug(client)
+    let savedSessionId: number | null = null
+
+    if (onboardingSessionId) {
+      const updatedSession = await client.query(
+        `UPDATE ocean_explorer_sessions
+         SET score = $1,
+             completed_at = CURRENT_TIMESTAMP,
+             player_name = COALESCE($2, player_name),
+             player_age = COALESCE($3, player_age),
+             sea_buddy = COALESCE($4, sea_buddy)
+         WHERE id = $5
+         RETURNING id`,
+        [score, playerName, playerAge, seaBuddy, onboardingSessionId]
+      )
+
+      if (updatedSession.rows.length > 0) {
+        savedSessionId = updatedSession.rows[0].id
+      }
+    }
+
+    if (!savedSessionId) {
+      const createdSession = await client.query(
+        `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [gameSlug, playerName, playerAge, seaBuddy, score]
+      )
+      savedSessionId = createdSession.rows[0].id
+    }
+
     await client.query('COMMIT')
 
     return res.status(201).json({
       message: 'Assessment saved successfully',
       student_id: studentId,
       school_id: schoolId,
+      session_id: savedSessionId,
       test_id: testResult.rows[0].test_id,
       result_status: resultStatus,
       ai_score: normalizedScore,
