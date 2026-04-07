@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express'
-const pool = require('../../db')
+import pool from '../../db.js'
 
 const router = express.Router()
 
@@ -28,11 +28,15 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
     const studentId = studentResult.rows[0].student_id
 
     // 2. Insert the game result into screening_test
+    // ai_score must be 0.0–1.0 (check constraint), so normalize from raw count
+    const MAX_ROUNDS = 10
+    const normalizedScore = Math.min(1, Math.max(0, (score ?? 0) / MAX_ROUNDS))
+
     const testResult = await client.query(
       `INSERT INTO screening_test (student_id, disability_type, ai_score, result_status)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [studentId, 'Dyslexia', score, 'Completed']
+      [studentId, 'Dyslexia', normalizedScore, 'Completed']
     )
 
     await client.query('COMMIT')
