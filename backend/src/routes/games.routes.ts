@@ -70,19 +70,25 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
     })
   }
 
-  const client = await pool.connect()
-
+  let client
   try {
+    client = await pool.connect()
+    console.log('Database connection established')
+
     await client.query('BEGIN')
+    console.log('Transaction started')
 
     let schoolId: string
+    console.log('Checking for existing school:', schoolName)
     const existingSchool = await client.query(
       `SELECT school_id FROM school WHERE school_name = $1 LIMIT 1`,
       [schoolName]
     )
+    console.log('School query result:', existingSchool.rows.length, 'records')
 
     if (existingSchool.rows.length > 0) {
       schoolId = existingSchool.rows[0].school_id
+      console.log('School exists, updating:', schoolId)
       await client.query(
         `UPDATE school
          SET location = COALESCE($1, location),
@@ -90,7 +96,9 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
          WHERE school_id = $3`,
         [schoolLocation, contactPerson, schoolId]
       )
+      console.log('School updated')
     } else {
+      console.log('School does not exist, creating new school')
       const newSchool = await client.query(
         `INSERT INTO school (school_name, location, contact_person)
          VALUES ($1, $2, $3)
@@ -98,6 +106,7 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
         [schoolName, schoolLocation, contactPerson]
       )
       schoolId = newSchool.rows[0].school_id
+      console.log('School created with ID:', schoolId)
     }
 
     const studentResult = await client.query(
@@ -107,21 +116,30 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
       [playerName, playerAge, gender, schoolId]
     )
     const studentId = studentResult.rows[0].student_id
+    console.log('Student created with ID:', studentId)
 
     let onboardingSessionId: number | null = null
     const sessionsTableExists = await doesTableExist(client, 'ocean_explorer_sessions')
+    console.log('Ocean explorer sessions table exists:', sessionsTableExists)
+
     if (sessionsTableExists) {
       const gameSlug = await getOceanExplorerSlug(client)
-      const onboardingSession = await client.query(
-        `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
-        [gameSlug, playerName, playerAge, seaBuddy, 0]
-      )
-      onboardingSessionId = onboardingSession.rows[0].id
+      console.log('Game slug:', gameSlug)
+
+      if (gameSlug) {
+        const onboardingSession = await client.query(
+          `INSERT INTO ocean_explorer_sessions (game_slug, player_name, player_age, sea_buddy, score)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id`,
+          [gameSlug, playerName, playerAge, seaBuddy, 0]
+        )
+        onboardingSessionId = onboardingSession.rows[0].id
+        console.log('Onboarding session created with ID:', onboardingSessionId)
+      }
     }
 
     await client.query('COMMIT')
+    console.log('Transaction committed successfully')
 
     return res.status(201).json({
       message: 'Onboarding saved successfully',
@@ -130,15 +148,26 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
       onboarding_session_id: onboardingSessionId,
     })
   } catch (error) {
-    await client.query('ROLLBACK')
+    try {
+      await client.query('ROLLBACK')
+      console.log('Transaction rolled back due to error')
+    } catch (rollbackErr) {
+      console.error('ROLLBACK ERROR:', rollbackErr)
+    }
+
     const err = error instanceof Error ? error : new Error(String(error))
     console.error('ONBOARDING SAVE ERROR:', err.message)
+    console.error('Error stack:', err.stack)
+
     return res.status(500).json({
       error: 'Database error',
       details: err.message,
     })
   } finally {
-    client.release()
+    if (client) {
+      client.release()
+      console.log('Database connection released')
+    }
   }
 })
 

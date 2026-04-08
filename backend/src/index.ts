@@ -54,6 +54,13 @@ app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// Request timeout middleware - set 30 second timeout for all requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  req.setTimeout(30000)
+  res.setTimeout(30000)
+  next()
+})
+
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`${req.method} ${req.path}`)
