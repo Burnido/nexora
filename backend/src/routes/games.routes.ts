@@ -70,7 +70,7 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
     })
   }
 
-  let client
+  let client: any = null
   try {
     client = await pool.connect()
     console.log('Database connection established')
@@ -200,9 +200,10 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Player name or student_id is required' })
   }
 
-  const client = await pool.connect()
+  let client: any = null
 
   try {
+    client = await pool.connect()
     await client.query('BEGIN')
 
     let schoolId: string | null = null
@@ -299,15 +300,25 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
       ai_score: normalizedScore,
     })
   } catch (error) {
-    await client.query('ROLLBACK')
+    try {
+      await client.query('ROLLBACK')
+      console.log('Transaction rolled back due to error')
+    } catch (rollbackErr) {
+      console.error('ROLLBACK ERROR:', rollbackErr)
+    }
+    
     const err = error instanceof Error ? error : new Error(String(error))
     console.error('CRITICAL DATABASE ERROR:', err.message)
+    console.error('Error stack:', err.stack)
     return res.status(500).json({
       error: 'Database error',
       details: err.message,
     })
   } finally {
-    client.release()
+    if (client) {
+      client.release()
+      console.log('Database connection released')
+    }
   }
 })
 
