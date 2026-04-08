@@ -7,10 +7,9 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000, // 5 second timeout for initial connection
-  statement_timeout: 10000, // 10 second timeout for statements
 })
 
-console.log('Database pool created with timeouts: connectionTimeout=5s, statementTimeout=10s')
+console.log('Database pool created with connectionTimeout=5s')
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err)

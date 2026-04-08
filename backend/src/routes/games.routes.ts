@@ -75,6 +75,10 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
     client = await pool.connect()
     console.log('Database connection established')
 
+    // Set statement timeout for this connection
+    await client.query('SET statement_timeout TO 10000')
+    console.log('Statement timeout set to 10 seconds')
+
     await client.query('BEGIN')
     console.log('Transaction started')
 
@@ -204,7 +208,14 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
 
   try {
     client = await pool.connect()
+    console.log('Database connection established')
+
+    // Set statement timeout for this connection
+    await client.query('SET statement_timeout TO 10000')
+    console.log('Statement timeout set to 10 seconds')
+
     await client.query('BEGIN')
+    console.log('Transaction started')
 
     let schoolId: string | null = null
     let studentId: string | null = studentIdFromBody
@@ -306,7 +317,7 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
     } catch (rollbackErr) {
       console.error('ROLLBACK ERROR:', rollbackErr)
     }
-    
+
     const err = error instanceof Error ? error : new Error(String(error))
     console.error('CRITICAL DATABASE ERROR:', err.message)
     console.error('Error stack:', err.stack)
