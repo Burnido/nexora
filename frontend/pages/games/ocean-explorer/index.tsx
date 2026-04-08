@@ -6,6 +6,7 @@ import {
   validatePlayerData,
   logStorageDebugInfo,
 } from '../../../lib/ocean-explorer-storage'
+import { getApiUrl } from '@/lib/api-url'
 
 const buddies = [
   { id: 'fish', name: 'Fish', icon: '🐟', color: 'bg-blue-100 text-blue-500' },
@@ -54,7 +55,7 @@ export default function OceanExplorerOnboarding() {
     setIsSubmitting(true)
     setError('')
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+    const apiUrl = getApiUrl()
     const ageNum = parseInt(age, 10)
 
     const payload = {

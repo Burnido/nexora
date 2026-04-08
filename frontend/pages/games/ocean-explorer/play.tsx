@@ -6,6 +6,7 @@ import {
   clearPlayerData,
   logStorageDebugInfo,
 } from '../../../lib/ocean-explorer-storage'
+import { getApiUrl } from '@/lib/api-url'
 
 const MAX_ROUNDS = 10
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
@@ -123,7 +124,7 @@ export default function BubbleBayPlay() {
     setSaveError('')
 
     // Get backend URL fallback to localhost for local testing
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+    const apiUrl = getApiUrl()
 
     try {
       const response = await fetch(`${apiUrl}/games/ocean-explorer/scores`, {
