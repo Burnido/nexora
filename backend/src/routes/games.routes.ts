@@ -49,7 +49,22 @@ router.post('/ocean-explorer/onboarding', async (req: Request, res: Response) =>
   const schoolLocation = getOptionalText(req.body.school_location)
   const contactPerson = getOptionalText(req.body.contact_person)
 
+  console.log('ONBOARDING REQUEST:', {
+    playerName,
+    playerAge,
+    gender,
+    seaBuddy,
+    schoolName,
+    schoolLocation,
+    contactPerson,
+  })
+
   if (!playerName || !schoolName || !seaBuddy) {
+    console.error('ONBOARDING VALIDATION ERROR: Missing required fields', {
+      playerName: !!playerName,
+      schoolName: !!schoolName,
+      seaBuddy: !!seaBuddy,
+    })
     return res.status(400).json({
       error: 'Player name, school name, and sea buddy are required',
     })
@@ -140,7 +155,19 @@ router.post('/ocean-explorer/scores', async (req: Request, res: Response) => {
   const onboardingSessionId = parseOptionalNumber(req.body.onboarding_session_id)
   const studentIdFromBody = getOptionalText(req.body.student_id)
 
+  console.log('SCORE SAVE REQUEST:', {
+    playerName,
+    playerAge,
+    gender,
+    seaBuddy,
+    score,
+    schoolName,
+    studentIdFromBody,
+    onboardingSessionId,
+  })
+
   if (!playerName && !studentIdFromBody) {
+    console.error('SCORE SAVE ERROR: Missing player_name and student_id')
     return res.status(400).json({ error: 'Player name or student_id is required' })
   }
 

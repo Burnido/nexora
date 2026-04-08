@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import {
+  savePlayerData,
+  validatePlayerData,
+  logStorageDebugInfo,
+} from '../../../lib/ocean-explorer-storage'
 
 const buddies = [
   { id: 'fish', name: 'Fish', icon: '🐟', color: 'bg-blue-100 text-blue-500' },
@@ -50,14 +55,29 @@ export default function OceanExplorerOnboarding() {
     setError('')
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+    const ageNum = parseInt(age, 10)
+
     const payload = {
       player_name: name,
-      player_age: parseInt(age, 10),
+      player_age: ageNum,
       gender,
       sea_buddy: selectedBuddy,
       school_name: schoolName,
       school_location: schoolLocation,
       contact_person: contactPerson,
+    }
+
+    const playerData = {
+      name,
+      age: ageNum,
+      gender,
+      buddy: selectedBuddy,
+      school_name: schoolName,
+      school_location: schoolLocation,
+      contact_person: contactPerson,
+      student_id: '',
+      onboarding_session_id: '',
+      timestamp: new Date().toISOString(),
     }
 
     try {
@@ -68,6 +88,7 @@ export default function OceanExplorerOnboarding() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       })
 
       console.log('Response status:', response.status, response.statusText)
@@ -86,29 +107,61 @@ export default function OceanExplorerOnboarding() {
         throw new Error('Invalid response from server')
       }
 
+      // Validate response has required IDs
+      if (!saved.student_id) {
+        throw new Error('Server response missing student_id')
+      }
+
       console.log('Onboarding saved successfully:', saved)
 
-      sessionStorage.setItem(
-        'ocean_explorer_player',
-        JSON.stringify({
-          name,
-          age: parseInt(age, 10),
-          gender,
-          buddy: selectedBuddy,
-          school_name: schoolName,
-          school_location: schoolLocation,
-          contact_person: contactPerson,
-          student_id: saved.student_id,
-          onboarding_session_id: saved.onboarding_session_id,
-        })
-      )
+      // Create complete player data object
+      const completePlayerData = {
+        name,
+        age: ageNum,
+        gender,
+        buddy: selectedBuddy,
+        school_name: schoolName,
+        school_location: schoolLocation,
+        contact_person: contactPerson,
+        student_id: saved.student_id,
+        onboarding_session_id: saved.onboarding_session_id || null,
+      }
 
-      router.push('/games/ocean-explorer/play')
+      // Validate data before saving
+      const validation = validatePlayerData(completePlayerData)
+      if (!validation.valid) {
+        console.warn('⚠️ Data validation warnings:', validation.errors)
+      }
+
+      // Save using the utility function (handles both sessionStorage and localStorage)
+      const saved1 = savePlayerData(completePlayerData)
+      if (!saved1) {
+        throw new Error('Failed to save data to storage')
+      }
+
+      // Log debug info
+      logStorageDebugInfo()
+
+      // Wait a brief moment before navigation to ensure data is committed
+      setTimeout(() => {
+        router.push('/games/ocean-explorer/play')
+      }, 500)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
       console.error('Onboarding save failed:', errorMessage)
       console.error('Full error:', err)
-      setError(`Save failed: ${errorMessage}`)
+
+      // Provide specific error messages
+      let userMessage = errorMessage
+      if (errorMessage.includes('Failed to fetch')) {
+        userMessage = 'Cannot connect to server. Please check your internet connection.'
+      } else if (errorMessage.includes('timeout')) {
+        userMessage = 'Request timed out. Please try again.'
+      } else if (errorMessage.includes('missing student_id')) {
+        userMessage = 'Server error: could not create student record. Please try again.'
+      }
+
+      setError(`Save failed: ${userMessage}`)
     } finally {
       setIsSubmitting(false)
     }

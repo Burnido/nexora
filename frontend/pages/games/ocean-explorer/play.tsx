@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import {
+  loadPlayerData,
+  clearPlayerData,
+  logStorageDebugInfo,
+} from '../../../lib/ocean-explorer-storage'
 
 const MAX_ROUNDS = 10
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
@@ -31,17 +36,40 @@ export default function BubbleBayPlay() {
   const [isSaved, setIsSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [finalScore, setFinalScore] = useState<number | null>(null)
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [initError, setInitError] = useState('')
 
   // Initialize game / load player info
   useEffect(() => {
-    const rawData = sessionStorage.getItem('ocean_explorer_player')
-    if (rawData) {
-      setPlayerData(JSON.parse(rawData))
-    } else {
-      // If no data, redirect to onboarding
-      router.replace('/games/ocean-explorer')
+    try {
+      // Log debug info for debugging
+      logStorageDebugInfo()
+
+      // Use utility function to load player data with fallback
+      const data = loadPlayerData()
+
+      if (!data) {
+        console.error('No player data found in storage')
+        setInitError('No player data found. Please complete the onboarding first.')
+        setIsInitializing(false)
+        setTimeout(() => {
+          router.replace('/games/ocean-explorer')
+        }, 2000)
+        return
+      }
+
+      console.log('Player data loaded:', data)
+      setPlayerData(data)
+      setIsInitializing(false)
+      setupRound()
+    } catch (err) {
+      console.error('Error loading player data:', err)
+      setInitError('Could not load player data. Redirecting...')
+      setIsInitializing(false)
+      setTimeout(() => {
+        router.replace('/games/ocean-explorer')
+      }, 2000)
     }
-    setupRound()
   }, [])
 
   const setupRound = () => {
@@ -102,8 +130,8 @@ export default function BubbleBayPlay() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id: playerData.student_id,
-          onboarding_session_id: playerData.onboarding_session_id,
+          student_id: playerData.student_id || null,
+          onboarding_session_id: playerData.onboarding_session_id || null,
           player_name: playerData.name,
           player_age: playerData.age,
           gender: playerData.gender,
@@ -113,20 +141,88 @@ export default function BubbleBayPlay() {
           school_location: playerData.school_location,
           contact_person: playerData.contact_person,
         }),
+        signal: AbortSignal.timeout(15000), // 15 second timeout
       })
 
       if (!response.ok) {
-        throw new Error('Server rejected score save request')
+        const errorText = await response.text()
+        throw new Error(`Server error (${response.status}): ${errorText}`)
       }
 
+      console.log('Score saved successfully')
       setIsSaved(true)
+
+      // Clear storage after successful save
+      clearPlayerData()
     } catch (e) {
-      console.error('Save failed', e)
+      const errorMsg = e instanceof Error ? e.message : String(e)
+      console.error('Save failed', errorMsg)
       setIsSaved(false)
-      setSaveError('Could not save game data. Please retry.')
+
+      let userMessage = 'Could not save game data.'
+      if (errorMsg.includes('timeout')) {
+        userMessage = 'Save timeout. Please retry.'
+      } else if (errorMsg.includes('Failed to fetch')) {
+        userMessage = 'Connection error. Please check your internet.'
+      }
+
+      setSaveError(userMessage + ' Please retry.')
     } finally {
       setIsSaving(false)
     }
+  }
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-sky-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+          <div className="text-6xl mb-4">🌊</div>
+          {initError ? (
+            <>
+              <h1 className="text-2xl font-bold text-red-600 mb-2">Initialization Error</h1>
+              <p className="text-slate-600 mb-4">{initError}</p>
+              <p className="text-sm text-slate-500">Redirecting to onboarding...</p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-blue-600 mb-2">Loading Ocean Explorer</h1>
+              <p className="text-slate-600 mb-4">Preparing your adventure...</p>
+              <div className="flex justify-center gap-1">
+                <div
+                  className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '0s' }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '0.1s' }}
+                ></div>
+                <div
+                  className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '0.2s' }}
+                ></div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (!playerData) {
+    return (
+      <div className="min-h-screen bg-sky-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">No Player Data</h1>
+          <p className="text-slate-600 mb-4">Please complete the onboarding form first.</p>
+          <button
+            onClick={() => router.replace('/games/ocean-explorer')}
+            className="w-full px-6 py-3 bg-cyan-500 text-white font-bold rounded-lg hover:bg-cyan-600"
+          >
+            Go to Onboarding
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (gameOver) {
