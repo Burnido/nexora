@@ -49,6 +49,11 @@ coverage/
 # Generated
 /generated/prisma
 
+# ML service runtime artifacts
+ml-service/venv/
+ml-service/__pycache__/
+ml-service/*.pyc
+
 # Debug output files (local only)
 backend/out*.txt
 backend/out_check.txt
