@@ -6,6 +6,7 @@ import taskRoutes from './routes/task.routes'
 import aiRoutes from './routes/ai.routes'
 import healthRoutes from './routes/health.routes'
 import gamesRoutes from './routes/games.routes'
+import mlRoutes from './routes/ml.routes'
 
 dotenv.config()
 
@@ -44,6 +45,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/games', gamesRoutes)
+app.use('/', mlRoutes)
 
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
