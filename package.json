@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "npm --prefix backend run dev",
     "build": "npm --prefix backend install --include=dev && npm --prefix backend run build",
-    "start": "npm --prefix backend run start"
+    "start": "npm --prefix backend run build && npm --prefix backend run start"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
