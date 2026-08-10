@@ -1,115 +1,137 @@
 import React from 'react'
+import Head from 'next/head'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import Features from '../components/Features'
+import Solutions from '../components/Solutions'
+
+const ScrollVideoHero = dynamic(() => import('../components/ScrollVideoHero'), {
+  ssr: false,
+})
 
 export default function Home() {
-  const assessments = [
+  const games = [
+    {
+      title: 'Dyscalculia Assessment',
+      subtitle: 'Dot Counting & Sweet Logic',
+      description: 'Mathematical reasoning and quick number-sense evaluation through interactive dot challenges.',
+      tags: ['Number Sense', 'Math Logic', 'Spatial Awareness'],
+      icon: '🍬',
+      link: '/games/dot-counting',
+      color: 'from-fuchsia-600 to-rose-500',
+    },
     {
       title: 'Dyslexia Assessment',
       subtitle: 'Ocean Depths Analysis',
-      description: 'Advanced reading pattern recognition through immersive oceanic environments',
-      tags: ['Pattern Recognition', 'Visual Processing', 'Reading Fluency'],
-      icon: '🧠',
+      description: 'Advanced reading pattern recognition and visual processing through deep sea exploration.',
+      tags: ['Visual Processing', 'Reading Fluency', 'Pattern Sense'],
+      icon: '🌊',
       link: '/games/ocean-explorer',
-      color: 'from-blue-600 to-blue-400',
-    },
-    {
-      title: 'Dyscalculia Assessment',
-      subtitle: 'Sweet Logic Paradise',
-      description: 'Mathematical reasoning through gamified candy-themed challenges',
-      tags: ['Number Sense', 'Mathematical Logic', 'Spatial Reasoning'],
-      icon: '🍭',
-      link: 'https://dyscalculia-screening-game.vercel.app/',
-      color: 'from-pink-600 to-pink-400',
+      color: 'from-sky-500 to-indigo-600',
     },
     {
       title: 'Dysgraphia Assessment',
       subtitle: 'Cosmic Writing Mission',
-      description:
-        'AI-powered handwriting analysis in a galactic setting to detect writing challenges',
-      tags: ['Motor Coordination', 'Writing Fluency', 'Letter Shape & Stroke Detection'],
+      description: 'AI-assisted handwriting stroke & letter shape analysis set in a galactic setting.',
+      tags: ['Motor Control', 'Writing Fluency', 'Stroke Accuracy'],
       icon: '🚀',
-      link: 'https://dysgraphia-screening-test-eci3.vercel.app/',
-      color: 'from-orange-600 to-orange-400',
+      link: '/assessment',
+      color: 'from-amber-500 to-pink-500',
     },
     {
-      title: 'ADHD Assessment',
+      title: 'ADHD Focus Assessment',
       subtitle: 'Attention Control Matrix',
-      description: 'Attention and focus measurement through dynamic space missions',
-      tags: ['Focus Control', 'Impulse Management', 'Task Switching'],
+      description: 'Dynamic focus measurement, impulse control tracking, and cognitive task breakdown.',
+      tags: ['Attention Control', 'Impulse Management', 'Task Switching'],
       icon: '⚡',
-      link: 'https://adhd-eta.vercel.app/',
-      color: 'from-yellow-600 to-yellow-400',
+      link: '/ai',
+      color: 'from-emerald-400 to-teal-600',
     },
   ]
 
   return (
-    <div className="min-h-screen bg-navy-950">
+    <div className="min-h-screen bg-navy-950 text-white font-sans selection:bg-fuchsia-500 selection:text-white">
+      <Head>
+        <title>Nexora | 3D Scroll & AI-Powered ADHD Platform</title>
+        <meta
+          name="description"
+          content="Nexora helps neurodivergent individuals master focus, build habits, and complete tasks with interactive 3D scroll visuals and AI tools."
+        />
+      </Head>
+
       <Header />
+
       <main>
-        {/* Assessments Section */}
-        <section className="py-20 md:py-28 bg-gradient-to-br from-navy-950 to-navy-900">
-          <div className="container-narrow">
+        {/* 3D SCROLL VIDEO HERO SECTION */}
+        <ScrollVideoHero />
+
+        {/* LEARNING GAMES SHOWCASE SECTION */}
+        <section id="games" className="py-24 md:py-32 bg-navy-950 border-t border-navy-800">
+          <div className="container-narrow px-6 max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Learning Assessments
+              <span className="text-xs font-mono tracking-widest text-sky-400 uppercase bg-sky-950/80 px-3 py-1 rounded-full border border-sky-800">
+                INTERACTIVE COGNITIVE SUITE
+              </span>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">
+                Gamified Learning & Assessments
               </h2>
-              <p className="text-xl text-navy-200 max-w-2xl mx-auto">
-                Discover your learning profile with our interactive assessment tools
+              <p className="text-lg text-navy-300 max-w-2xl mx-auto font-light">
+                Discover your cognitive strengths with scientifically styled, engaging gamified missions.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {assessments.map((assessment, index) => (
-                <a
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {games.map((game, index) => (
+                <div
                   key={index}
-                  href={assessment.link}
-                  target={assessment.link.startsWith('/') ? '_self' : '_blank'}
-                  rel="noopener noreferrer"
-                  className="group relative"
+                  className="group relative bg-navy-900/90 border border-navy-800 hover:border-sky-500/50 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
                 >
-                  <div className="absolute -inset-1 bg-gradient-to-r from-navy-500 to-navy-700 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative bg-navy-800 border border-navy-700 p-8 rounded-lg hover:border-navy-500 transition-all duration-300 h-full cursor-pointer">
-                    {/* Icon */}
+                  <div>
                     <div
-                      className={`text-5xl mb-6 inline-block p-4 rounded-lg bg-gradient-to-br ${assessment.color} text-white`}
+                      className={`text-4xl mb-6 inline-flex p-4 rounded-xl bg-gradient-to-br ${game.color} text-white shadow-lg`}
                     >
-                      {assessment.icon}
+                      {game.icon}
                     </div>
 
-                    {/* Content */}
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 group-hover:text-navy-200 transition-colors">
-                      {assessment.title}
+                    <h3 className="text-2xl font-bold text-white mb-1 group-hover:text-sky-300 transition-colors">
+                      {game.title}
                     </h3>
-                    <p className="text-sm text-navy-400 mb-3 font-semibold">
-                      {assessment.subtitle}
-                    </p>
-                    <p className="text-navy-300 mb-6 text-sm">{assessment.description}</p>
+                    <p className="text-xs text-sky-400 font-mono mb-3">{game.subtitle}</p>
+                    <p className="text-navy-300 text-sm mb-6 leading-relaxed">{game.description}</p>
 
-                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-8">
-                      {assessment.tags.map((tag, tagIndex) => (
+                      {game.tags.map((tag, tagIndex) => (
                         <span
                           key={tagIndex}
-                          className="px-3 py-1 bg-navy-700 text-navy-200 text-xs rounded-full font-medium"
+                          className="px-3 py-1 bg-navy-800 text-navy-300 text-xs rounded-full border border-navy-700 font-medium"
                         >
                           {tag}
                         </span>
                       ))}
                     </div>
-
-                    {/* Button */}
-                    <button className="w-full py-4 bg-gradient-to-r from-navy-600 to-navy-700 hover:from-navy-500 hover:to-navy-600 text-white font-bold rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center gap-2">
-                      Begin Assessment ✨
-                    </button>
                   </div>
-                </a>
+
+                  <Link
+                    href={game.link}
+                    className="w-full py-3.5 bg-navy-800 hover:bg-gradient-to-r hover:from-sky-500 hover:to-fuchsia-600 text-white font-bold rounded-xl transition-all duration-300 text-center block shadow-md group-hover:shadow-sky-500/20"
+                  >
+                    Play Now ✨
+                  </Link>
+                </div>
               ))}
             </div>
           </div>
         </section>
+
+        {/* FEATURES SECTION */}
+        <Features />
+
+        {/* SOLUTIONS SECTION */}
+        <Solutions />
       </main>
+
       <Footer />
     </div>
   )

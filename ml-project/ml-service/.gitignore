@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+*.pth
+best_dysgraphia_model.pth
+models/
+.env

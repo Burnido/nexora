@@ -43,6 +43,7 @@ export default function BubbleBayPlay() {
   // Initialize game / load player info
   useEffect(() => {
     try {
+      
       // Log debug info for debugging
       logStorageDebugInfo()
 

@@ -40,8 +40,7 @@ api.interceptors.response.use(
 export const authAPI = {
   signup: (data: { name: string; email: string; password: string }) =>
     api.post('/auth/signup', data),
-  signin: (data: { email: string; password: string }) =>
-    api.post('/auth/signin', data),
+  signin: (data: { email: string; password: string }) => api.post('/auth/signin', data),
   logout: () => api.post('/auth/logout'),
   getCurrentUser: () => api.get('/auth/me'),
 }

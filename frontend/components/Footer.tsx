@@ -31,7 +31,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/ai-studio" className="text-cream-300 text-sm hover:text-cream-50 transition-colors">
+                <Link href="/ai" className="text-cream-300 text-sm hover:text-cream-50 transition-colors">
                   AI Studio
                 </Link>
               </li>

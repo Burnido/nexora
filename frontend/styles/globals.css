@@ -9,7 +9,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Lenis handles smoothness — native smooth would fight it */
 }
 
 body {
@@ -148,3 +148,53 @@ a:hover {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL VIDEO HERO — Intro reveal keyframes
+   Drives the initial blur-to-sharp card & video entrance.
+═══════════════════════════════════════════════════════════ */
+
+/* Card intro: blurry + pushed down → sharp + centred */
+@keyframes heroCardReveal {
+  0%   { opacity: 0; transform: translateY(36px) scale(0.93); filter: blur(22px); }
+  60%  { filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0px)  scale(1);    filter: blur(0px);  }
+}
+
+/* HUD bar fade-in */
+@keyframes heroHUDFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Video slow ambient drift on load (subtle scale-in) */
+@keyframes videoAmbientLoad {
+  0%   { transform: scale(1.08); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Pulsing shimmer on loading skeleton */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.hero-card-intro {
+  animation: heroCardReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-hud-intro {
+  animation: heroHUDFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.video-ambient-load {
+  animation: videoAmbientLoad 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* Hide scrollbar in tab strip */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
