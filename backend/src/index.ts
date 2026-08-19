@@ -45,7 +45,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/games', gamesRoutes)
-app.use('/', mlRoutes)
+app.use('/api', mlRoutes)
 
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

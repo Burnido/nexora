@@ -115,7 +115,7 @@ async def predict(file: UploadFile = File(...)):
         risk_level = "High"
     elif prob_dysgraphia >= 0.35:
         risk_level = "Moderate"
-    else:
+    else:   
         risk_level = "Low"
 
     return {
