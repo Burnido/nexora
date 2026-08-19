@@ -16,7 +16,7 @@ const getMlServiceUrl = () => {
   return url.replace(/\/+$/, '')
 }
 
-router.post('/predict', upload.single('image'), async (req: Request, res: Response) => {
+router.post('/predict', upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Image file is required' })
