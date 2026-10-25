@@ -10,6 +10,8 @@ export default function DysgraphiaLanding() {
   const [files, setFiles] = useState<File[]>([])
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [studentId, setStudentId] = useState<string | null>(null)
+  const [detailsError, setDetailsError] = useState<string | null>(null)
   const prompts = [
     'Write your name and draw a star next to it.',
     'Write the numbers 1 to 5 and circle your favorite number.',
@@ -39,6 +41,49 @@ export default function DysgraphiaLanding() {
     if (!e.target.files) return
     const arr = Array.from(e.target.files)
     setFiles(arr)
+  }
+
+  async function saveStudentDetails() {
+    const trimmedName = name.trim()
+    const parsedAge = Number(age)
+
+    if (!trimmedName || !Number.isInteger(parsedAge) || parsedAge < 1 || parsedAge > 120) {
+      setDetailsError('Please enter a name and a valid age between 1 and 120.')
+      return false
+    }
+
+    setDetailsError(null)
+
+    try {
+      const response = await fetch(`${getApiUrl()}/games/assessment/student`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmedName, age: parsedAge }),
+      })
+      const data = await response.json()
+
+      if (!response.ok || !data.student?.student_id) {
+        throw new Error(data.error || 'Could not save your details')
+      }
+
+      setStudentId(data.student.student_id)
+      return true
+    } catch (error) {
+      console.error('Failed to save assessment student details:', error)
+      setDetailsError('We could not save your details. Please try again.')
+      return false
+    }
+  }
+
+  async function startAdventure() {
+    if (studentId) {
+      setStep(1)
+      return
+    }
+
+    if (await saveStudentDetails()) {
+      setStep(1)
+    }
   }
 
   async function uploadAndPredict() {
@@ -137,9 +182,10 @@ export default function DysgraphiaLanding() {
                   <input className="p-3 rounded bg-navy-800" placeholder="Age (7-11)" value={age} onChange={e => setAge(e.target.value)} />
                 </div>
 
-                <button className="mt-6 w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded" onClick={() => setStep(1)}>
-                  Start Adventure!
+                <button className="mt-6 w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded disabled:cursor-not-allowed disabled:opacity-60" onClick={startAdventure}>
+                {studentId ? 'Continue Adventure' : 'Start Adventure!'}
                 </button>
+                {detailsError && <p className="mt-3 text-sm text-red-300">{detailsError}</p>}
               </div>
             </div>
           )}

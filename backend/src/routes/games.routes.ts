@@ -23,6 +23,35 @@ const parseOptionalNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+router.post('/assessment/student', async (req: Request, res: Response) => {
+  const name = getRequiredText(req.body.name)
+  const age = parseOptionalNumber(req.body.age)
+
+  if (!name || age === null || !Number.isInteger(age) || age < 1 || age > 120) {
+    return res.status(400).json({
+      error: 'A valid name and age between 1 and 120 are required',
+    })
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO student (name, age, gender)
+       VALUES ($1, $2, $3)
+       RETURNING student_id, name, age`,
+      [name, age, 'Not Specified']
+    )
+
+    return res.status(201).json({
+      message: 'Student saved successfully',
+      student: result.rows[0],
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('ASSESSMENT STUDENT SAVE ERROR:', message)
+    return res.status(500).json({ error: 'Could not save student details' })
+  }
+})
+
 const doesTableExist = async (client: any, tableName: string) => {
   const result = await client.query(`SELECT to_regclass($1) AS table_ref`, [`public.${tableName}`])
   return Boolean(result.rows[0]?.table_ref)
