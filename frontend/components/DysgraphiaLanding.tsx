@@ -196,35 +196,75 @@ export default function DysgraphiaLanding() {
                   <p className="text-navy-300 mt-2">Congratulations, you completed the space writing adventure! Upload your handwritten samples for analysis.</p>
                 </div>
 
-                <div className="bg-navy-900 p-6 rounded flex flex-col gap-4">
-                  <input type="file" accept="image/*" multiple onChange={handleFileChange} />
-                  <div className="flex gap-2 flex-wrap">
-                    {files.map((f, i) => (
-                      <div key={i} className="bg-navy-800 p-2 rounded text-sm">{f.name}</div>
-                    ))}
-                  </div>
+                <div className="bg-navy-900 p-6 rounded border border-navy-700 flex flex-col gap-5">
+                  <label className="group flex cursor-pointer flex-col items-center justify-center gap-3 border border-dashed border-navy-600 bg-navy-800/60 px-6 py-8 text-center transition-colors hover:border-purple-400 hover:bg-navy-800">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/15 text-2xl text-purple-300">↑</span>
+                    <span className="font-medium text-navy-100">Upload handwritten samples</span>
+                    <span className="text-sm text-navy-400">PNG, JPG, or JPEG · You can select multiple images</span>
+                    <input className="sr-only" type="file" accept="image/*" multiple onChange={handleFileChange} />
+                  </label>
 
-                  <button className="mt-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded" onClick={uploadAndPredict} disabled={loading}>
-                    {loading ? 'Uploading...' : 'Upload Images'}
+                  {files.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                    {files.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 rounded-full border border-navy-700 bg-navy-800 px-3 py-2 text-sm text-navy-200">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        <span className="max-w-[220px] truncate">{f.name}</span>
+                      </div>
+                    ))}
+                    </div>
+                  )}
+
+                  <button className="mt-1 flex items-center justify-center gap-2 rounded bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-3 font-semibold text-white transition-all hover:from-green-400 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-60" onClick={uploadAndPredict} disabled={loading || files.length === 0}>
+                    {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+                    {loading ? 'Analyzing samples...' : files.length > 0 ? `Analyze ${files.length} sample${files.length === 1 ? '' : 's'}` : 'Choose samples to analyze'}
                   </button>
 
                   {preflightMessage && (
-                    <div className="mt-2 text-sm text-navy-300">{preflightMessage}</div>
+                    <div className="flex items-center gap-2 text-sm text-navy-400">
+                      <span className="h-2 w-2 rounded-full bg-sky-400" />
+                      {preflightMessage}
+                    </div>
                   )}
 
                   {results.length > 0 && (
-                    <div className="mt-4 bg-navy-900 p-4 rounded">
-                      <h4 className="font-semibold">Results</h4>
-                      <ul className="mt-2 space-y-2">
+                    <div className="mt-2 border-t border-navy-700 pt-5">
+                      <div className="mb-3 flex items-end justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">Analysis complete</p>
+                          <h4 className="mt-1 text-lg font-semibold text-white">Your handwriting results</h4>
+                        </div>
+                        <span className="rounded-full bg-navy-800 px-3 py-1 text-xs text-navy-300">{results.length} sample{results.length === 1 ? '' : 's'}</span>
+                      </div>
+                      <ul className="grid gap-3">
                         {results.map((r, idx) => (
-                          <li key={idx} className="text-sm">
-                            <div className="font-medium">{r.file}</div>
+                          <li key={idx} className={`rounded border p-4 text-sm ${r.ok ? 'border-emerald-500/25 bg-emerald-500/5' : 'border-red-500/25 bg-red-500/5'}`}>
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0">
+                                <div className="truncate font-medium text-navy-100">{r.file}</div>
+                                <div className={`mt-1 text-xs ${r.ok ? 'text-emerald-300' : 'text-red-300'}`}>{r.ok ? 'Prediction ready' : 'Analysis failed'}</div>
+                              </div>
+                              {r.ok && <span className="text-lg text-emerald-300">✓</span>}
+                            </div>
                             {r.ok ? (
-                              <div className="text-navy-300">Prediction: {r.json?.prediction} — Chance: {r.json?.dysgraphia_chance_percent}% — Risk: {r.json?.risk_level}</div>
+                              <div className="mt-4 grid grid-cols-3 gap-2">
+                                <div className="bg-navy-900/70 p-3">
+                                  <div className="text-[10px] uppercase tracking-wider text-navy-400">Prediction</div>
+                                  <div className="mt-1 capitalize font-semibold text-white">{r.json?.prediction}</div>
+                                </div>
+                                <div className="bg-navy-900/70 p-3">
+                                  <div className="text-[10px] uppercase tracking-wider text-navy-400">Chance</div>
+                                  <div className="mt-1 font-semibold text-white">{r.json?.dysgraphia_chance_percent}%</div>
+                                </div>
+                                <div className="bg-navy-900/70 p-3">
+                                  <div className="text-[10px] uppercase tracking-wider text-navy-400">Risk</div>
+                                  <div className="mt-1 font-semibold text-white">{r.json?.risk_level}</div>
+                                </div>
+                              </div>
                             ) : (
-                              <div className="text-red-400">
+                              <div className="mt-3 text-red-300">
                                 <div>Error: {typeof r.error === 'string' ? r.error : JSON.stringify(r.error || r.json)}</div>
-                                {r.url && <div className="text-xs text-navy-400">Tried: {r.url}</div>}
+                                {r.url && <div className="mt-1 text-xs text-navy-400">Tried: {r.url}</div>}
                               </div>
                             )}
                           </li>
