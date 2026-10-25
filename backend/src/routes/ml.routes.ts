@@ -5,6 +5,10 @@ import multer from 'multer'
 
 const router = Router()
 const upload = multer({ storage: multer.memoryStorage() })
+const uploadImage = upload.fields([
+  { name: 'file', maxCount: 1 },
+  { name: 'image', maxCount: 1 },
+])
 
 const getMlServiceUrl = () => {
   const url = process.env.ML_SERVICE_URL
@@ -16,16 +20,19 @@ const getMlServiceUrl = () => {
   return url.replace(/\/+$/, '')
 }
 
-router.post('/predict', upload.single('file'), async (req: Request, res: Response) => {
+router.post('/predict', uploadImage, async (req: Request, res: Response) => {
   try {
-    if (!req.file) {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined
+    const image = files?.file?.[0] || files?.image?.[0]
+
+    if (!image) {
       return res.status(400).json({ error: 'Image file is required' })
     }
 
     const form = new FormData()
-    form.append('file', req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
+    form.append('file', image.buffer, {
+      filename: image.originalname,
+      contentType: image.mimetype,
     })
 
     const response = await axios.post(`${getMlServiceUrl()}/predict`, form, {
