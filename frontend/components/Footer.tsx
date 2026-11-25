@@ -12,7 +12,7 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">NEXORA</h3>
             <p className="text-cream-300 text-sm">
-              Focus better, achieve more. AI-powered ADHD management for everyone.
+              A straightforward space for planning, focus, and learning.
             </p>
           </div>
 

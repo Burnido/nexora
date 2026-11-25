@@ -3,54 +3,47 @@ import React from 'react'
 const features = [
   {
     title: 'Smart Task Management',
-    description: 'Break down complex tasks into manageable steps with AI assistance. Get intelligent suggestions for prioritization and scheduling.',
-    icon: '📋',
+    description: 'Break larger tasks into smaller steps and organize what needs doing.',
   },
   {
     title: 'Focus Sessions',
-    description: 'Customizable focus intervals with gentle reminders. Track your productivity patterns and optimize your work rhythm.',
-    icon: '⏱️',
+    description: 'Set a focus interval that works for you, with gentle reminders.',
   },
   {
     title: 'Habit Tracking',
-    description: 'Build sustainable habits with visual progress. Celebrate small wins and stay motivated on your journey.',
-    icon: '✓',
+    description: 'Keep track of routines and notice your progress over time.',
   },
   {
     title: 'AI Insights',
-    description: 'Machine learning analyzes your patterns. Get personalized recommendations to improve focus and productivity.',
-    icon: '🧠',
+    description: 'Get suggestions to help plan tasks and build a focus routine.',
   },
   {
     title: 'Distraction Blocker',
-    description: 'Minimize interruptions during focus sessions. Stay on track with smart notification management.',
-    icon: '🛡️',
+    description: 'Reduce interruptions during focus sessions and stay with the task at hand.',
   },
   {
     title: 'Community Support',
-    description: 'Connect with others walking the same path. Share strategies, celebrate wins, and grow together.',
-    icon: '👥',
+    description: 'Share strategies and encouragement with others working toward similar goals.',
   },
 ]
 
 export default function Features() {
   return (
-    <section className="py-20 md:py-28 bg-navy-950 text-cream-50">
-      <div className="container-narrow">
-        <h2 className="text-heading text-cream-50 mb-4">Powerful Features</h2>
-        <p className="text-lg text-cream-300 mb-16 max-w-2xl">
-          Designed from the ground up for how your brain works. Every feature is intentional, every interaction is thought through.
+    <section className="border-b border-cream-400 bg-cream-100 py-20 md:py-28">
+      <div className="container-wide">
+        <h2 className="text-heading mb-4 text-navy-950">Tools for everyday work</h2>
+        <p className="mb-12 max-w-2xl text-base leading-relaxed text-navy-700">
+          Simple ways to plan, focus, and keep moving through your day.
         </p>
 
-        <div className="grid-cols-auto">
-          {features.map((feature, index) => (
+        <div className="grid grid-cols-1 gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
             <div
-              key={index}
-              className="border border-cream-200 p-8 hover:border-sage-400 transition-colors duration-300"
+              key={feature.title}
+              className="border-t border-cream-500 py-6"
             >
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-subheading text-cream-50 mb-3">{feature.title}</h3>
-              <p className="text-cream-200 text-base leading-relaxed">{feature.description}</p>
+              <h3 className="text-lg font-semibold text-navy-950">{feature.title}</h3>
+              <p className="mt-2 text-base leading-relaxed text-navy-700">{feature.description}</p>
             </div>
           ))}
         </div>
