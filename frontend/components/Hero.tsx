@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export default function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100svh-65px)] items-center justify-center overflow-hidden bg-sage-950 px-6 py-16 text-center text-cream-50">
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-sage-950 px-6 py-16 text-center text-cream-50">
       <div aria-hidden="true" className="home-hero-grid pointer-events-none absolute inset-0" />
 
       <div className="container-wide relative flex flex-col items-center">
@@ -21,9 +21,6 @@ export default function Hero() {
         <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
           <Link href="#games" className="btn hero-primary">
             Explore activities
-          </Link>
-          <Link href="/signup" className="btn btn-outline hero-secondary">
-            Create an account
           </Link>
         </div>
 
