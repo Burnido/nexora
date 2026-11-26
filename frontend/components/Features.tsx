@@ -29,10 +29,10 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="border-b border-cream-400 bg-cream-100 py-20 md:py-28">
+    <section className="border-b border-sage-200 bg-sage-100 py-20 md:py-28">
       <div className="container-wide">
-        <h2 className="text-heading mb-4 text-navy-950">Tools for everyday work</h2>
-        <p className="mb-12 max-w-2xl text-base leading-relaxed text-navy-700">
+        <h2 className="text-heading mb-4 text-sage-950">Tools for everyday work</h2>
+        <p className="mb-12 max-w-2xl text-base leading-relaxed text-sage-900">
           Simple ways to plan, focus, and keep moving through your day.
         </p>
 
@@ -40,10 +40,10 @@ export default function Features() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="border-t border-cream-500 py-6"
+              className="border-l-4 border-sage-500 bg-cream-50 p-6 even:border-marigold-500"
             >
-              <h3 className="text-lg font-semibold text-navy-950">{feature.title}</h3>
-              <p className="mt-2 text-base leading-relaxed text-navy-700">{feature.description}</p>
+              <h3 className="text-lg font-semibold text-sage-950">{feature.title}</h3>
+              <p className="mt-2 text-base leading-relaxed text-sage-900">{feature.description}</p>
             </div>
           ))}
         </div>

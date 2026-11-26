@@ -24,10 +24,10 @@ const solutions = [
 
 export default function Solutions() {
   return (
-    <section className="py-20 md:py-28 bg-cream-50">
+    <section className="bg-cream-50 py-20 md:py-28">
       <div className="container-wide">
-        <h2 className="text-heading text-navy-950 mb-4">Choose what fits</h2>
-        <p className="text-base text-navy-700 mb-12 max-w-2xl">
+        <h2 className="text-heading mb-4 text-sage-950">Choose what fits</h2>
+        <p className="mb-12 max-w-2xl text-base text-sage-900">
           Whether you're working alone or with a team, Nexora adapts to your needs.
         </p>
 
@@ -36,16 +36,16 @@ export default function Solutions() {
             <Link
               key={solution.title}
               href={solution.href}
-              className="group flex flex-col border border-cream-500 p-6 transition-colors hover:border-sage-700"
+              className="group flex flex-col border border-sage-300 bg-sage-50 p-6 transition-colors hover:border-marigold-600 hover:bg-marigold-50"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
-                <h3 className="text-xl font-semibold text-navy-950">{solution.title}</h3>
-                <span className="border border-cream-500 px-2 py-1 text-xs text-navy-700">
+                <h3 className="text-xl font-semibold text-sage-950">{solution.title}</h3>
+                <span className="border border-marigold-300 bg-marigold-100 px-2 py-1 text-xs text-marigold-950">
                   {solution.tag}
                 </span>
               </div>
-              <p className="mb-6 flex-1 text-base leading-relaxed text-navy-700">{solution.description}</p>
-              <div className="text-sm font-medium text-navy-950">
+              <p className="mb-6 flex-1 text-base leading-relaxed text-sage-900">{solution.description}</p>
+              <div className="text-sm font-semibold text-sage-900 group-hover:text-marigold-800">
                 Explore →
               </div>
             </Link>

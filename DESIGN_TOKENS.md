@@ -47,6 +47,23 @@ Sage 900:   #364d3d
 Sage 950:   #1f2d27
 ```
 
+### Marigold (Warm Accent)
+```
+Marigold 50:  #fffbed
+Marigold 100: #fff5cc
+Marigold 200: #ffeb99
+Marigold 300: #ffdb66
+Marigold 400: #f2c94c
+Marigold 500: #d6aa2b
+Marigold 600: #b88a1f
+Marigold 700: #8f6c1a
+Marigold 800: #70541c
+Marigold 900: #59431a
+Marigold 950: #35280f
+```
+Use lighter shades for surfaces and highlights, and darker shades for text and borders.
+Pair with Sage for the homepage palette; keep Marigold as an accent rather than a large body-text color.
+
 ## Typography Scale
 
 ### Display (Large Headings)
@@ -116,6 +133,9 @@ Padding: 0.75rem 1.5rem
 Font Weight: 500
 ```
 **HTML**: `<button class="btn btn-outline">Button Text</button>`
+
+On the homepage, primary buttons use Sage on light surfaces and Marigold on the dark hero.
+The dark hero's secondary button uses a transparent Sage fill with a subtle light border.
 
 ### Button Hover State
 ```css
@@ -199,11 +219,13 @@ border-radius: 0 !important;
 <div className="bg-navy-950">Dark navy</div>
 <div className="bg-cream-50">Cream background</div>
 <div className="bg-sage-600">Sage accent</div>
+<div className="bg-marigold-100">Marigold highlight</div>
 
 // Text
 <p className="text-navy-950">Navy text</p>
 <p className="text-cream-50">Cream text</p>
 <p className="text-sage-600">Sage text</p>
+<p className="text-marigold-800">Marigold accent text</p>
 
 // Borders
 <div className="border border-navy-200">Subtle border</div>

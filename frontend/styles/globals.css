@@ -153,6 +153,67 @@ a:hover {
   text-decoration: none;
 }
 
+.home-page .btn {
+  background-color: #476b50;
+  border-color: #476b50;
+  color: #fefdfb;
+}
+
+.home-page .btn:hover {
+  background-color: #1f2d27;
+  border-color: #1f2d27;
+  color: #fefdfb;
+}
+
+.home-page .btn-outline {
+  background-color: #fff5cc;
+  border-color: #f2c94c;
+  color: #1f2d27;
+}
+
+.home-page .btn-outline:hover {
+  background-color: #ffeb99;
+  border-color: #b88a1f;
+  color: #1f2d27;
+}
+
+.home-page .hero-primary {
+  background-color: #f2c94c;
+  border-color: #f2c94c;
+  color: #1f2d27;
+}
+
+.home-page .hero-primary:hover {
+  background-color: #d6aa2b;
+  border-color: #d6aa2b;
+  color: #1f2d27;
+}
+
+.home-page .hero-secondary {
+  background-color: rgba(31, 45, 39, 0.6);
+  border-color: rgba(236, 244, 239, 0.35);
+  color: #fefdfb;
+}
+
+.home-page .hero-secondary:hover {
+  background-color: rgba(71, 107, 80, 0.75);
+  border-color: #f2c94c;
+  color: #fefdfb;
+}
+
+.home-page a:focus-visible,
+.home-page button:focus-visible {
+  outline: 3px solid #d6aa2b;
+  outline-offset: 3px;
+}
+
+.home-hero-grid {
+  background-image:
+    linear-gradient(rgba(197, 220, 203, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(197, 220, 203, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
 /* Hide scrollbar in tab strip */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

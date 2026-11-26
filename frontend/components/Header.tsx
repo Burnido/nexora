@@ -5,29 +5,29 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 bg-cream-50 border-b border-navy-200">
+    <header className="sticky top-0 z-50 border-b border-sage-200 bg-sage-50">
       <nav className="container-narrow py-4 flex items-center justify-between">
         <Link href="/">
-          <div className="text-2xl font-bold text-navy-950 tracking-tighter">NEXORA</div>
+          <div className="text-2xl font-bold tracking-tighter text-sage-950">NEXORA</div>
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
           <Link
             href="/solutions"
-            className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium"
+            className="text-sage-950 hover:opacity-60 transition-opacity text-sm font-medium"
           >
             Solutions
           </Link>
           <Link
             href="/ai"
-            className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium"
+            className="text-sage-950 hover:opacity-60 transition-opacity text-sm font-medium"
           >
             AI Studio
           </Link>
           <Link
             href="/resources"
-            className="text-navy-950 hover:opacity-60 transition-opacity text-sm font-medium"
+            className="text-sage-950 hover:opacity-60 transition-opacity text-sm font-medium"
           >
             Resources
           </Link>
@@ -38,7 +38,7 @@ export default function Header() {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 border border-navy-950"
+          className="md:hidden border border-sage-600 p-2 text-sage-950 transition-colors hover:bg-marigold-100"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={isMenuOpen}
@@ -56,15 +56,15 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-navy-200 py-4 bg-cream-50">
+        <div className="md:hidden border-t border-sage-200 bg-sage-50 py-4">
           <div className="container-narrow flex flex-col gap-4">
-            <Link href="/solutions" className="text-navy-950 text-sm font-medium">
+            <Link href="/solutions" className="text-sage-950 text-sm font-medium">
               Solutions
             </Link>
-            <Link href="/ai" className="text-navy-950 text-sm font-medium">
+            <Link href="/ai" className="text-sage-950 text-sm font-medium">
               AI Studio
             </Link>
-            <Link href="/resources" className="text-navy-950 text-sm font-medium">
+            <Link href="/resources" className="text-sage-950 text-sm font-medium">
               Resources
             </Link>
             <Link href="/signin" className="btn text-sm w-full text-center">
